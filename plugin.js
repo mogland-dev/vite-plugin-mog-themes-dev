@@ -108,12 +108,35 @@ function generateErrorPage(error) {
   `;
 }
 
+function generateMockData() {
+  return {
+    title: 'My Theme',
+    config: {
+      seo: {},
+      user: {}
+    },
+    url: {},
+    theme: {},
+    site: {
+      pages: []
+    },
+    page: {
+      docs: []
+    },
+  };
+}
+
 
 function extensionToFunction(theme, extension) {
   const extensionPath = resolve(process.cwd(), `./themes/${theme}/plugins/${extension}`);
   const _extensionFunction = require(extensionPath);
   const extensionFunction = Function(
     `
+    ${
+      Object.keys(generateMockData())
+        .map(key => `const ${key} = ${JSON.stringify(generateMockData()[key])};`)
+        .join('\n')
+    }
     return ${_extensionFunction[_extensionFunction.name].toString().replace(/(\r\n|\n|\r)/gm, '')}
     `
   )();
@@ -212,19 +235,7 @@ function createMogThemeDevServerPlugin(config) {
           const themeFile = await readFile(resolve(process.cwd(), `./themes/${nowTheme}/${filename || "index"}.ejs`), 'utf-8');
 
           // TODO
-          const mockData = {
-            title: 'My Theme',
-            config: {
-              seo: {},
-            },
-            theme: {},
-            site: {
-              pages: []
-            },
-            page: {
-              docs: []
-            },
-          };
+          const mockData = generateMockData();
 
           const ejsData = {
             ...mockData,
