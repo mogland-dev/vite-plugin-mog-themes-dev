@@ -3,12 +3,58 @@ const ejs = require('ejs');
 const { resolve } = require('path');
 const colors = require('picocolors');
 
+const FORBIDDEN_FILES = [
+  ".DS_Store",
+  "node_modules",
+  "package-lock.json",
+  "yarn.lock",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  ".git",
+  ".idea",
+  ".vscode",
+  ".env",
+  "README.md",
+];
+
+const DIRECT_FILES = [
+  "favicon.ico",
+  "jpg",
+  "jpeg",
+  "png",
+  "gif",
+  "svg",
+  "woff",
+  "woff2",
+  "ttf",
+  "eot",
+  "mp4",
+  "webm",
+  "ogg",
+  "mp3",
+  "wav",
+  "flac",
+  "aac",
+]
+
 function createMogThemeDevServerPlugin(config) {
   return {
     name: 'mog-theme-dev-server',
     handleHotUpdate({ file, server }) {
-      if (file.includes('theme')) {
-        // 通知 Vite 根据修改的 EJS 文件重新部分刷新
+      for (const forbiddenFile of FORBIDDEN_FILES) {
+        if (file.includes(forbiddenFile)) {
+          return;
+        }
+      }
+      // parse path, only files under themes directory will trigger hot update
+      // not use includes themes, because there may be other directories called xx-themes-xx
+      if (file.split('/').includes('themes')) {
+        // check config, if config.themeId exists, only files under this themeId will trigger hot update
+        if (config?.themeId) {
+          if (!file.includes(config.themeId)) {
+            return;
+          }
+        }
         server.ws.send({
           type: 'full-reload',
           path: '*',
@@ -22,30 +68,42 @@ function createMogThemeDevServerPlugin(config) {
     },
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        if (req.url.includes('vite')) {
+        if (req.url.includes('vite')) { // to support vite client
           next();
           return;
+        }
+        for (const forbiddenFile of FORBIDDEN_FILES) {
+          if (req.url.includes(forbiddenFile)) {
+            res.statusCode = 403;
+            res.end(JSON.stringify({
+              message: "Forbidden",
+              error: "Forbidden",
+            }));
+            return;
+          }
+        }
+        for (const directFile of DIRECT_FILES) {
+          if (req.url.includes(directFile)) {
+            next();
+            return;
+          }
         }
         const nowTheme = config?.themeId ? config.themeId : req.url.split('/')[1];
         const filename = req.url.split('/').slice(-1)[0];
         try {
           const themeFile = await readFile(resolve(process.cwd(), `./themes/${nowTheme}/${filename}.ejs`), 'utf-8');
 
-          // 模拟数据
           const mockData = {
             title: 'My Theme',
             // ...
           };
 
-          // 渲染 EJS 主题文件
           const renderedTheme = ejs.render(themeFile, mockData);
-          // 在头部加入 @vite/client，以便在浏览器中进行热更新
+          // add @vite/client, to support page update
           const injected = renderedTheme.replace(
             '</head>',
             '<script type="module" src="/@vite/client"></script></head>'
           );
-
-          // 设置响应头和内容
           res.setHeader('Content-Type', 'text/html');
           res.end(injected);
         } catch (error) {
