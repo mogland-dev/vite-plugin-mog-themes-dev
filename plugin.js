@@ -49,6 +49,18 @@ function generateErrorPage(error) {
       <script type="module" src="/@vite/client"></script>
       <title>Error</title>
       <style>
+        :root {
+          --text-color: #333;
+          --bg-color: #fff;
+          --pre-bg-color: #f5f5f5;
+        }
+        @media (prefers-color-scheme: dark) {
+          :root {
+            --text-color: #fff;
+            --bg-color: #333;
+            --pre-bg-color: #1e1e1e;
+          }
+        }
         html,
         body {
           margin: 0;
@@ -58,11 +70,12 @@ function generateErrorPage(error) {
             'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
           font-size: 14px;
           line-height: 1.5;
-          color: #333;
+          color: var(--text-color);
           display: flex;
           align-items: center;
           justify-content: center;
           height: 100vh;
+          background: var(--bg-color);
           text-align: center;
         }
         h2 {
@@ -73,7 +86,7 @@ function generateErrorPage(error) {
           text-align: left;
           margin: 20px;
           padding: 20px;
-          background: #f5f5f5;
+          background: var(--pre-bg-color);
           border-radius: 4px;
           overflow-x: auto;
         }
@@ -158,7 +171,7 @@ function createMogThemeDevServerPlugin(config) {
 
         try {
           const themeFile = await readFile(resolve(process.cwd(), `./themes/${nowTheme}/${filename}.ejs`), 'utf-8');
-          
+
           // TODO
           const mockData = {
             title: 'My Theme',
