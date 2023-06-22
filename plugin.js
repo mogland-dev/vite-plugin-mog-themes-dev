@@ -133,10 +133,9 @@ function extensionToFunction(theme, extension) {
   const _extensionFunction = require(extensionPath);
   const extensionFunction = Function(
     `
-    ${
-      Object.keys(generateMockData())
-        .map(key => `const ${key} = ${JSON.stringify(generateMockData()[key])};`)
-        .join('\n')
+    ${Object.keys(generateMockData())
+      .map(key => `const ${key} = ${JSON.stringify(generateMockData()[key])};`)
+      .join('\n')
     }
     return ${_extensionFunction[_extensionFunction.name].toString().replace(/(\r\n|\n|\r)/gm, '')}
     `
@@ -183,14 +182,16 @@ function createMogThemeDevServerPlugin(config) {
             return;
           }
         }
-        // server.ws.send({
-        //   type: 'full-reload',
-        //   path: '*',
-        // });
         server.ws.send({
-          type: 'custom',
-          event: 'file-changed',
-        })
+          type: 'full-reload',
+          path: '*',
+        });
+        if (config?.dev) {
+          server.ws.send({
+            type: 'custom',
+            event: 'file-changed',
+          })
+        }
         const _file = file.split('/').slice(-2);
         const theme = _file[0];
         const filename = _file[1];
