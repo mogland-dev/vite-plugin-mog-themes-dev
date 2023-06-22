@@ -3,6 +3,12 @@ const ejs = require('ejs');
 const { resolve } = require('path');
 const colors = require('picocolors');
 const mime = require('mime');
+const { readdirSync } = require('fs');
+
+function logger(type, message) {
+  const time = new Date().toLocaleTimeString();
+  console.log(`${colors.dim(time)} ${colors.bold(colors.blue(`[mog-theme-dev-server]`))} ${colors.green(type)} ${colors.dim(message)}`);
+}
 
 const FORBIDDEN_FILES = [
   ".DS_Store",
@@ -102,6 +108,39 @@ function generateErrorPage(error) {
   `;
 }
 
+
+function extensionToFunction(theme, extension) {
+  const extensionPath = resolve(process.cwd(), `./themes/${theme}/plugins/${extension}`);
+  const _extensionFunction = require(extensionPath);
+  const extensionFunction = Function(
+    `
+    return ${_extensionFunction[_extensionFunction.name].toString().replace(/(\r\n|\n|\r)/gm, '')}
+    `
+  )();
+  return extensionFunction;
+}
+
+function generateInjectExtensions(theme) {
+  const extensions = readdirSync(resolve(process.cwd(), `./themes/${theme}/plugins`), { withFileTypes: true })
+    .filter(dirent => !dirent.isDirectory()) // exclude directories
+  const _extensionsList = [];
+  for (const extension of extensions) {
+    if (extension.name.endsWith('.js')) {
+      _extensionsList.push(extension.name.split('.')[0]);
+      logger('load extension', extension.name);
+    }
+  }
+  let extensionsList = [];
+  for (const extension of _extensionsList) {
+    extensionsList.push({
+      name: extension,
+      function: extensionToFunction(theme, extension),
+    });
+  }
+  return extensionsList;
+}
+
+
 function createMogThemeDevServerPlugin(config) {
   return {
     name: 'mog-theme-dev-server',
@@ -175,12 +214,38 @@ function createMogThemeDevServerPlugin(config) {
           // TODO
           const mockData = {
             title: 'My Theme',
-            // ...
+            config: {
+              seo: {},
+            },
+            theme: {},
+            site: {
+              pages: []
+            },
+            page: {
+              docs: []
+            },
           };
 
-          const renderedTheme = ejs.render(themeFile, mockData, {
-            debug: true,
-            compileDebug: true,
+          const ejsData = {
+            ...mockData,
+          }
+
+          const extensions = generateInjectExtensions(nowTheme);
+          for (const key of extensions) {
+            ejsData[key.name] = key.function;
+          }
+          ejsData["_i"] = Function(
+            `
+            return function (key) {
+              return key;
+            }
+            `
+          )();
+          ejsData['private'] = {}
+          ejsData['private']['plugins'] = extensions;
+          // console.log(extensions);
+
+          const renderedTheme = ejs.render(themeFile, ejsData, {
             root: resolve(process.cwd(), `./themes/${nowTheme}`),
           });
           // add @vite/client, to support page update
