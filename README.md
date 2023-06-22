@@ -6,6 +6,15 @@ A Vite Plugin for developing mog themes
 🧪 Working in Progress
 </pre>
 
+## Features
+
+- [x] File listening and reload (full reload)
+- [x] Multi-theme support
+- [ ] Simulation data
+- [x] Friendly error page
+- [ ] GUI configuration
+- ...
+
 ## Usage
 
 - Themes Storage: `./themes`
