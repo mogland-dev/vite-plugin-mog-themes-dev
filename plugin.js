@@ -183,14 +183,14 @@ function createMogThemeDevServerPlugin(config) {
             return;
           }
         }
-        server.ws.send({
-          type: 'full-reload',
-          path: '*',
-        });
         // server.ws.send({
-        //   type: 'custom',
-        //   event: 'file-changed',
-        // })
+        //   type: 'full-reload',
+        //   path: '*',
+        // });
+        server.ws.send({
+          type: 'custom',
+          event: 'file-changed',
+        })
         const _file = file.split('/').slice(-2);
         const theme = _file[0];
         const filename = _file[1];
@@ -273,7 +273,7 @@ function createMogThemeDevServerPlugin(config) {
           const injected = renderedTheme.replace(
             '</head>',
             `<script type="module" src="/@vite/client"></script>
-            <script type="module" src="/@private/vite-ws"></script>
+            ${config?.dev ? `<script type="module" src="/@private/vite-ws" data-mog-private-hash="${md5(new Date().getTime().toString())}"></script>` : ''}
             </head>`
           );
           res.setHeader('Content-Type', 'text/html');
