@@ -69,13 +69,16 @@ function createMogThemeDevServerPlugin(config) {
     },
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
+        const nowTheme = config?.themeId ? config.themeId : req.url.split('/')[1];
+        const filename = req.url.split('/').slice(-1)[0];
+
         // If you want to use static assets in your theme, 
         // you can put the static assets in the assets folder and then request /raw/assets/* in the theme template to get the static assets.
         if (req.url.includes('raw')) {
           // 检索是否有对应的文件
           const filename = req.url.split('/').slice(-1)[0];
           try {
-            const file = await readFile(resolve(process.cwd(), `./themes/${filename}`));
+            const file = await readFile(resolve(process.cwd(), `./themes/${nowTheme}/${req.url.split('/').slice(-2).join('/')}`));
             res.setHeader('Content-Type', mime.getType(filename) || 'text/plain');
             res.end(file);
           } catch (error) {
@@ -107,8 +110,7 @@ function createMogThemeDevServerPlugin(config) {
             return;
           }
         }
-        const nowTheme = config?.themeId ? config.themeId : req.url.split('/')[1];
-        const filename = req.url.split('/').slice(-1)[0];
+
         try {
           const themeFile = await readFile(resolve(process.cwd(), `./themes/${nowTheme}/${filename}.ejs`), 'utf-8');
 
@@ -117,7 +119,11 @@ function createMogThemeDevServerPlugin(config) {
             // ...
           };
 
-          const renderedTheme = ejs.render(themeFile, mockData);
+          const renderedTheme = ejs.render(themeFile, mockData, {
+            debug: true,
+            compileDebug: true,
+            root: resolve(process.cwd(), `./themes/${nowTheme}`),
+          });
           // add @vite/client, to support page update
           const injected = renderedTheme.replace(
             '</head>',
