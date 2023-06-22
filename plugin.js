@@ -4,6 +4,7 @@ const { resolve } = require('path');
 const colors = require('picocolors');
 const mime = require('mime');
 const { readdirSync } = require('fs');
+const md5 = require('md5');
 
 function logger(type, message) {
   const time = new Date().toLocaleTimeString();
@@ -186,6 +187,10 @@ function createMogThemeDevServerPlugin(config) {
           type: 'full-reload',
           path: '*',
         });
+        // server.ws.send({
+        //   type: 'custom',
+        //   event: 'file-changed',
+        // })
         const _file = file.split('/').slice(-2);
         const theme = _file[0];
         const filename = _file[1];
@@ -197,7 +202,12 @@ function createMogThemeDevServerPlugin(config) {
       server.middlewares.use(async (req, res, next) => {
         const nowTheme = config?.themeId ? config.themeId : req.url.split('/')[1];
         const filename = req.url.split('/').slice(-1)[0];
-
+        if (req.url.includes('@private/vite-ws')) { // to support custom event
+          const file = await readFile(resolve(__dirname, './vite-ws.js'));
+          res.setHeader('Content-Type', 'application/javascript');
+          res.end(file);
+          return;
+        }
         // If you want to use static assets in your theme, 
         // you can put the static assets in the assets folder and then request /raw/assets/* in the theme template to get the static assets.
         if (req.url.includes('raw')) {
@@ -262,7 +272,9 @@ function createMogThemeDevServerPlugin(config) {
           // add @vite/client, to support page update
           const injected = renderedTheme.replace(
             '</head>',
-            '<script type="module" src="/@vite/client"></script></head>'
+            `<script type="module" src="/@vite/client"></script>
+            <script type="module" src="/@private/vite-ws"></script>
+            </head>`
           );
           res.setHeader('Content-Type', 'text/html');
           res.end(injected);
