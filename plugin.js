@@ -38,6 +38,57 @@ const DIRECT_FILES = [
   "aac",
 ]
 
+function generateErrorPage(error) {
+  // prevent code execution
+  error = error.toString().replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return `
+  <!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <script type="module" src="/@vite/client"></script>
+      <title>Error</title>
+      <style>
+        html,
+        body {
+          margin: 0;
+          padding: 0;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+            'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji',
+            'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+          font-size: 14px;
+          line-height: 1.5;
+          color: #333;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+          text-align: center;
+        }
+        h2 {
+          font-size: 2rem;
+          margin: 10px;
+        }
+        pre {
+          text-align: left;
+          margin: 20px;
+          padding: 20px;
+          background: #f5f5f5;
+          border-radius: 4px;
+          overflow-x: auto;
+        }
+      </style>
+    </head>
+    <body>
+      <div>
+        <h2>Mog Theme Dev Server - Failed to load theme</h2>
+        <pre>${error}</pre>
+      </div>
+    </body>
+  </html>
+  `;
+}
+
 function createMogThemeDevServerPlugin(config) {
   return {
     name: 'mog-theme-dev-server',
@@ -83,10 +134,7 @@ function createMogThemeDevServerPlugin(config) {
             res.end(file);
           } catch (error) {
             res.statusCode = 404;
-            res.end(JSON.stringify({
-              message: "Not Found",
-              error: "Not Found",
-            }));
+            res.end(generateErrorPage(error));
           }
           return;
         }
@@ -97,10 +145,7 @@ function createMogThemeDevServerPlugin(config) {
         for (const forbiddenFile of FORBIDDEN_FILES) {
           if (req.url.includes(forbiddenFile)) {
             res.statusCode = 403;
-            res.end(JSON.stringify({
-              message: "Forbidden",
-              error: "Forbidden",
-            }));
+            res.end(generateErrorPage(`Forbidden file: ${forbiddenFile}`));
             return;
           }
         }
@@ -113,7 +158,8 @@ function createMogThemeDevServerPlugin(config) {
 
         try {
           const themeFile = await readFile(resolve(process.cwd(), `./themes/${nowTheme}/${filename}.ejs`), 'utf-8');
-
+          
+          // TODO
           const mockData = {
             title: 'My Theme',
             // ...
@@ -135,10 +181,7 @@ function createMogThemeDevServerPlugin(config) {
           const time = new Date().toLocaleTimeString();
           console.error(`${colors.dim(time)} ${colors.bold(colors.blue(`[mog-theme-dev-server]`))} ${colors.red(`Failed to load theme: ${error.message}`)}`);
           res.statusCode = 500;
-          res.end(JSON.stringify({
-            message: "Internal Server Error",
-            error: error.message,
-          }));
+          res.end(generateErrorPage(error));
         }
       });
     },
