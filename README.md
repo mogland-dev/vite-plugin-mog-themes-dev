@@ -8,12 +8,17 @@ A Vite Plugin for developing mog themes
 
 ## Features
 
-- [x] File listening and reload (full reload)
-- [x] Multi-theme support
-- [ ] Simulation data
-- [x] Friendly error page
-- [ ] GUI configuration
-- ...
+- [x] **File listening and reload (full reload).** When the theme file changes, the page will be reloaded automatically.
+- [x] **Multi-theme support.** You can develop multiple themes at the same time.
+- [ ] **Simulation data.** You can configure the simulation data in the `mock` folder.
+- [x] **Friendly error page.** When an error occurs, the error page will be displayed. No JSON display.
+- [ ] **GUI configuration.** You can configure the theme like in the console, or modify the mock data.
+- [ ] **Theme extension support.** You can develop themes based on custom extensions.
+- [ ] **Full development support.** You can experience the good development of the theme without the need for a mog server.
+- [ ] **Full reload -> Hot reload.** When the theme file changes, only the changed part will be reloaded. It will be implemented in the future.
+- [ ] **Create To Publish CLI.** You can create a theme and publish it to the Mog Community with one cli.
+- [ ] **Connect to the Mog Server.** You can connect to the Mog Server to develop themes to experience the production environment.
+- [ ] ...
 
 ## Usage
 
