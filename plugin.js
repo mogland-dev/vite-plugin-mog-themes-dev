@@ -2,6 +2,7 @@ const { readFile } = require('fs/promises');
 const ejs = require('ejs');
 const { resolve } = require('path');
 const colors = require('picocolors');
+const mime = require('mime');
 
 const FORBIDDEN_FILES = [
   ".DS_Store",
@@ -68,6 +69,24 @@ function createMogThemeDevServerPlugin(config) {
     },
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
+        // If you want to use static assets in your theme, 
+        // you can put the static assets in the assets folder and then request /raw/assets/* in the theme template to get the static assets.
+        if (req.url.includes('raw')) {
+          // 检索是否有对应的文件
+          const filename = req.url.split('/').slice(-1)[0];
+          try {
+            const file = await readFile(resolve(process.cwd(), `./themes/${filename}`));
+            res.setHeader('Content-Type', mime.getType(filename) || 'text/plain');
+            res.end(file);
+          } catch (error) {
+            res.statusCode = 404;
+            res.end(JSON.stringify({
+              message: "Not Found",
+              error: "Not Found",
+            }));
+          }
+          return;
+        }
         if (req.url.includes('vite')) { // to support vite client
           next();
           return;

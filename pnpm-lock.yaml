@@ -1,5 +1,10 @@
 lockfileVersion: '6.0'
 
+dependencies:
+  mime:
+    specifier: ^3.0.0
+    version: 3.0.0
+
 devDependencies:
   '@types/ejs':
     specifier: ^3.1.2
@@ -346,6 +351,12 @@ packages:
       filelist: 1.0.4
       minimatch: 3.1.2
     dev: true
+
+  /mime@3.0.0:
+    resolution: {integrity: sha512-jSCU7/VB1loIWBZe14aEYHU/+1UMEHoaO7qxCOVJOw9GgH72VAWppxNcjU+x9a2k3GSIBXNKxXQFqRvvZ7vr3A==}
+    engines: {node: '>=10.0.0'}
+    hasBin: true
+    dev: false
 
   /minimatch@3.1.2:
     resolution: {integrity: sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==}
