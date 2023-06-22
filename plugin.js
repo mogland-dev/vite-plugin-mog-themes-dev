@@ -170,7 +170,7 @@ function createMogThemeDevServerPlugin(config) {
         }
 
         try {
-          const themeFile = await readFile(resolve(process.cwd(), `./themes/${nowTheme}/${filename}.ejs`), 'utf-8');
+          const themeFile = await readFile(resolve(process.cwd(), `./themes/${nowTheme}/${filename || "index"}.ejs`), 'utf-8');
 
           // TODO
           const mockData = {
