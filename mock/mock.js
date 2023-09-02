@@ -15,7 +15,27 @@ const config = {
 const user = {};
 
 /** @type {import('../@types').Post[] }*/
-const posts = [];
+const posts = [
+  {
+    id: "aosidjasodijasoidjasoid",
+    title: "Hello World",
+    slug: "hello-world",
+    text: "This is my first post,yoyoyoyoyoyoyoyo",
+    category: {
+      name: "Mock Category",
+      slug: "mock-category",
+    },
+    category_id: "categoryid",
+    tags: ["tag1", "tag2"],
+    created: new Date().toLocaleDateString(),
+    modified: new Date().toLocaleDateString(),
+    count: {
+      read: 900,
+      like: 2
+    },
+    summary: "This is my first post",
+  }
+];
 
 /** @type {import('../@types').Page[] }*/
 const pages = [];

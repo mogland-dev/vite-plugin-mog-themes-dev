@@ -123,6 +123,7 @@ function generateMockData() {
   for (const key of Object.keys(mock)) {
     mockData[key] = mock[key];
   }
+  mockData.page.docs = mockData.site.posts;
   return mockData;
 }
 

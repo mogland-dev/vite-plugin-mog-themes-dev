@@ -8,7 +8,7 @@ export interface BaseCommentIndex extends Base {
   allowComment: boolean;
 }
 
-export interface WriteBase {
+export interface WriteBase extends BaseCommentIndex {
   title: string;
   text: string;
   images: {
