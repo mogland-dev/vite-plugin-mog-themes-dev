@@ -24,7 +24,7 @@ interface Email {
   pass: string;
 }
 
-interface Theme {
+export interface Theme {
   id: string;
   name: string;
   active?: boolean;

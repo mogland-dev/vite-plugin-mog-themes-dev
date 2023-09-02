@@ -1,5 +1,15 @@
 /** @type {import('../@types').Config } */
-const config = {};
+const config = {
+  seo: {
+    title: 'Mog',
+    description: 'A simple blog system',
+  },
+  site: {},
+  schedule: [],
+  webhooks: [],
+  themes: [],
+  email: {},
+};
 
 /** @type {import('../@types').User } */
 const user = {};
@@ -19,14 +29,21 @@ const categories = [];
 /** @type {import('../@types').Friend[] }*/
 const friends = [];
 
+/** @type {import('../@types').Theme }*/
+const theme = {}
+
 
 /** @type {import('../@types').Mock } */
 module.exports = {
   config,
   user,
-  posts,
-  pages,
   comments,
-  categories,
   friends,
+  theme,
+  site: {
+    posts,
+    pages,
+    categories,
+    tags: [], // FIX: it should be auto-generated
+  }
 }

@@ -3,7 +3,7 @@ const ejs = require('ejs');
 const { resolve } = require('path');
 const colors = require('picocolors');
 const mime = require('mime');
-const { readdirSync } = require('fs');
+const { readdirSync, readFileSync } = require('fs');
 const md5 = require('md5');
 
 function logger(type, message) {
@@ -110,21 +110,20 @@ function generateErrorPage(error) {
 }
 
 function generateMockData() {
-  return {
-    title: 'My Theme',
-    config: {
-      seo: {},
-      user: {}
-    },
-    url: {},
-    theme: {},
-    site: {
-      pages: []
-    },
+  const mock = require(resolve(process.cwd(), './mock/mock.js'));
+  // mock.js 里会导出一堆东西，我们只需要把这些东西原封不动地返回就可以了
+  const mockData = {
+    // FIX: they should be auto-generated
     page: {
-      docs: []
-    },
+      docs: [],
+    }, 
+    url: {},
+    path: "",
   };
+  for (const key of Object.keys(mock)) {
+    mockData[key] = mock[key];
+  }
+  return mockData;
 }
 
 
@@ -175,10 +174,10 @@ function createMogThemeDevServerPlugin(config) {
       }
       // parse path, only files under themes directory will trigger hot update
       // not use includes themes, because there may be other directories called xx-themes-xx
-      if (file.split('/').includes('themes')) {
+      if (file.split('/').includes('themes') || file.split('/').includes('mock')) {
         // check config, if config.themeId exists, only files under this themeId will trigger hot update
         if (config?.themeId) {
-          if (!file.includes(config.themeId)) {
+          if (!file.includes(config.themeId) && !file.includes('mock')) {
             return;
           }
         }
@@ -245,7 +244,6 @@ function createMogThemeDevServerPlugin(config) {
         try {
           const themeFile = await readFile(resolve(process.cwd(), `./themes/${nowTheme}/${filename || "index"}.ejs`), 'utf-8');
 
-          // TODO
           const mockData = generateMockData();
 
           const ejsData = {

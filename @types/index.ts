@@ -1,6 +1,6 @@
 import { Category } from "./category";
 import { Comment } from "./comment";
-import { Config } from "./config";
+import { Config, Theme } from "./config";
 import { Friend } from "./friend";
 import { Page } from "./page";
 import { Post } from "./post";
@@ -14,6 +14,7 @@ export interface Mock {
   comments: Comment[];
   categories: Category[];
   friends: Friend[];
+  theme: Theme;
 }
 
-export { Category, Comment, Config, Friend, Page, Post, User };
+export { Category, Comment, Config, Friend, Page, Post, User, Theme };
