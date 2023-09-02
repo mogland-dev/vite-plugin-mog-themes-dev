@@ -5,7 +5,6 @@ export interface User extends Base {
   nickname: string;
   description?: string;
   avatar?: string;
-  password: string;
   email?: string;
   url?: string;
   lastLoginTime?: Date;
