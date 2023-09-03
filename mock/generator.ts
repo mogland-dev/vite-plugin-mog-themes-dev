@@ -113,25 +113,31 @@ export function generateMockData<T extends RenderType>(
   if (!req) {
     throw new Error("Why req is undefined?");
   }
-  const _type = req.url!.split("/").slice(1)[0];
+  const _type = req.url!.split("/").slice(1)[0]; // 获取 type 参数
   const validTypes = [
     "index",
     "category",
     "tag",
     "archive",
     "friends",
-    "post",
+    "posts",
     "page",
   ];
 
   let type: RenderType;
 
-  if (_type && validTypes.includes(_type)) {
-    type = _type as RenderType;
-  } else if (req.params.length === 0) {
-    type = "archive";
+  if (_type) {
+    // 如果有 type 参数，且是有效的 type
+    if (validTypes.includes(_type)) {
+      type = _type as RenderType;
+    } else {
+      type = "pages";
+    }
   } else {
     type = "index";
+  }
+  if (_type === "posts" && req.params.length === 0) {
+    type = "archive";
   }
   const path = req.url!;
   return {

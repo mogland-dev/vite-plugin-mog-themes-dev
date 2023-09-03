@@ -97,6 +97,7 @@ function generateErrorPage(error) {
           background: var(--pre-bg-color);
           border-radius: 4px;
           overflow-x: auto;
+          max-width: calc(100vw - 100px);
         }
       </style>
     </head>
@@ -120,7 +121,9 @@ function generateMockData(req) {
   for (const key of Object.keys(mock)) {
     mockData[key] = mock[key];
   }
-  mockData.page = { docs: mockData.site.posts, ...mockData.page };
+  if (req.url === '/') {
+    mockData.page = { docs: mockData.site.posts, ...mockData.page };
+  }
   return mockData;
 }
 
@@ -211,11 +214,16 @@ function createMogThemeDevServerPlugin(config) {
 
         let filename = validFilenames.includes(_filename) ? _filename : "page";
 
-        if (!validFilenames.includes(_filename) || (isCategoryOrTag && hasParams)) {
+        if (!validFilenames.includes(_filename) && (isCategoryOrTag && hasParams)) {
           filename = "archive";
         } else if (_filename === "posts") {
-          filename = "post";
+          if (hasParams) {
+            filename = "post";
+          } else {
+            filename = "archive";
+          }
         }
+
         if (req.url.includes('@private/vite-ws')) { // to support custom event
           const file = await readFile(resolve(__dirname, './vite-ws.js'));
           res.setHeader('Content-Type', 'application/javascript');

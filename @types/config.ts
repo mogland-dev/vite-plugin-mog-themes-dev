@@ -1,3 +1,5 @@
+import { User } from "./user";
+
 interface Seo {
   title: string;
   description: string;
@@ -70,4 +72,5 @@ export interface Config {
   email: Email;
   themes: Theme[];
   schedule: Schedule[];
+  user: User;
 }

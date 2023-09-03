@@ -11,6 +11,14 @@ import {
   Comment,
 } from "../@types";
 
+const user: User = {
+  id: faker.string.uuid(),
+  username: faker.internet.userName(),
+  nickname: faker.person.firstName(),
+  created: new Date(faker.date.past()).toLocaleDateString(),
+  avatar: "https://github.com/wibus-wee.png"
+};
+
 const config: Config = {
   seo: {
     title: faker.internet.domainWord(),
@@ -55,13 +63,7 @@ const config: Config = {
       };
     }
   ),
-};
-
-const user: User = {
-  id: faker.string.uuid(),
-  username: faker.internet.userName(),
-  nickname: faker.person.firstName(),
-  created: new Date(faker.date.past()).toLocaleDateString(),
+  user,
 };
 
 const posts: Post[] = Array.from({
