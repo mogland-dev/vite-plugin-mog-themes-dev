@@ -16,8 +16,9 @@ export interface Mock {
     categories: Category[];
     posts: Post[];
     pages: Page[];
-    tags: string[];
+    tags: { count: number; name: string; }[];
   };
 }
 
 export { Category, Comment, Config, Friend, Page, Post, User, Theme };
+export * from "./render";

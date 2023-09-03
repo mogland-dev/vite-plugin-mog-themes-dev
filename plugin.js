@@ -47,7 +47,8 @@ const DIRECT_FILES = [
 
 function generateErrorPage(error) {
   // prevent code execution
-  error = error.toString().replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  error.message = error.message.toString().replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  error.stack = error.stack.toString().replace(/</g, '&lt;').replace(/>/g, '&gt;');
   return `
   <!DOCTYPE html>
   <html lang="en">
@@ -102,39 +103,36 @@ function generateErrorPage(error) {
     <body>
       <div>
         <h2>Mog Theme Dev Server - Failed to load theme</h2>
-        <pre>${error}</pre>
+        <pre>${error.stack}</pre>
       </div>
     </body>
   </html>
   `;
 }
 
-function generateMockData() {
-  const mock = require(resolve(process.cwd(), './mock/index.js'));
-  // mock.js 里会导出一堆东西，我们只需要把这些东西原封不动地返回就可以了
+function generateMockData(req) {
+  const generator = require(resolve(process.cwd(), './mock/index.js'));
+  const mock = generator.generateMockData(req);
   const mockData = {
-    // FIX: they should be auto-generated
-    page: {
-      docs: [],
-    }, 
     url: {},
     path: "",
   };
   for (const key of Object.keys(mock)) {
     mockData[key] = mock[key];
   }
-  mockData.page.docs = mockData.site.posts;
+  mockData.page = { docs: mockData.site.posts, ...mockData.page };
   return mockData;
 }
 
 
-function extensionToFunction(theme, extension) {
+function extensionToFunction(req, theme, extension) {
   const extensionPath = resolve(process.cwd(), `./themes/${theme}/plugins/${extension}`);
   const _extensionFunction = require(extensionPath);
+  const mock = generateMockData(req);
   const extensionFunction = Function(
     `
-    ${Object.keys(generateMockData())
-      .map(key => `const ${key} = ${JSON.stringify(generateMockData()[key])};`)
+    ${Object.keys(mock)
+      .map(key => `const ${key} = ${JSON.stringify(mock[key])};`)
       .join('\n')
     }
     return ${_extensionFunction[_extensionFunction.name].toString().replace(/(\r\n|\n|\r)/gm, '')}
@@ -143,7 +141,7 @@ function extensionToFunction(theme, extension) {
   return extensionFunction;
 }
 
-function generateInjectExtensions(theme) {
+function generateInjectExtensions(req, theme) {
   const extensions = readdirSync(resolve(process.cwd(), `./themes/${theme}/plugins`), { withFileTypes: true })
     .filter(dirent => !dirent.isDirectory()) // exclude directories
   const _extensionsList = [];
@@ -157,7 +155,7 @@ function generateInjectExtensions(theme) {
   for (const extension of _extensionsList) {
     extensionsList.push({
       name: extension,
-      function: extensionToFunction(theme, extension),
+      function: extensionToFunction(req, theme, extension),
     });
   }
   return extensionsList;
@@ -201,8 +199,23 @@ function createMogThemeDevServerPlugin(config) {
     },
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        const nowTheme = config?.themeId ? config.themeId : req.url.split('/')[1];
-        const filename = req.url.split('/').slice(-1)[0];
+        const url = new URL(req.url, `http://${req.headers.host}`);
+        req.query = Object.fromEntries(url.searchParams) || {};
+        req.params = req.url.split('/').slice(2);
+        const pathSegments = req.url.split('/');
+        const _filename = pathSegments[1] || "index";
+        const nowTheme = config?.themeId || pathSegments[1];
+        const validFilenames = ["index", "category", "tag", "archive", "friends", "posts", "page"];
+        const isCategoryOrTag = ["category", "tag"].includes(_filename);
+        const hasParams = req.params?.length > 0;
+
+        let filename = validFilenames.includes(_filename) ? _filename : "page";
+
+        if (!validFilenames.includes(_filename) || (isCategoryOrTag && hasParams)) {
+          filename = "archive";
+        } else if (_filename === "posts") {
+          filename = "post";
+        }
         if (req.url.includes('@private/vite-ws')) { // to support custom event
           const file = await readFile(resolve(__dirname, './vite-ws.js'));
           res.setHeader('Content-Type', 'application/javascript');
@@ -241,17 +254,16 @@ function createMogThemeDevServerPlugin(config) {
             return;
           }
         }
-
         try {
           const themeFile = await readFile(resolve(process.cwd(), `./themes/${nowTheme}/${filename || "index"}.ejs`), 'utf-8');
 
-          const mockData = generateMockData();
+          const mockData = generateMockData(req);
 
           const ejsData = {
             ...mockData,
           }
 
-          const extensions = generateInjectExtensions(nowTheme);
+          const extensions = generateInjectExtensions(req, nowTheme);
           for (const key of extensions) {
             ejsData[key.name] = key.function;
           }
@@ -280,7 +292,7 @@ function createMogThemeDevServerPlugin(config) {
           res.end(injected);
         } catch (error) {
           const time = new Date().toLocaleTimeString();
-          console.error(`${colors.dim(time)} ${colors.bold(colors.blue(`[mog-theme-dev-server]`))} ${colors.red(`Failed to load theme: ${error.message}`)}`);
+          console.error(`${colors.dim(time)} ${colors.bold(colors.blue(`[mog-theme-dev-server]`))} ${colors.red(`Failed to load theme: ${error.stack}`)}`);
           res.statusCode = 500;
           res.end(generateErrorPage(error));
         }
