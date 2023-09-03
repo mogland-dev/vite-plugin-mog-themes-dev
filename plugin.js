@@ -110,7 +110,7 @@ function generateErrorPage(error) {
 }
 
 function generateMockData() {
-  const mock = require(resolve(process.cwd(), './mock/mock.js'));
+  const mock = require(resolve(process.cwd(), './mock/index.js'));
   // mock.js 里会导出一堆东西，我们只需要把这些东西原封不动地返回就可以了
   const mockData = {
     // FIX: they should be auto-generated
