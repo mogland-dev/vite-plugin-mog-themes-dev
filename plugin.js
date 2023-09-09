@@ -111,9 +111,9 @@ function generateErrorPage(error) {
   `;
 }
 
-function generateMockData(req) {
+async function generateMockData(req) {
   const generator = require(resolve(process.cwd(), './mock/index.js'));
-  const mock = generator.generateMockData(req);
+  const mock = await generator.generateMockData(req);
   const mockData = {
     url: {},
     path: "",
@@ -265,7 +265,7 @@ function createMogThemeDevServerPlugin(config) {
         try {
           const themeFile = await readFile(resolve(process.cwd(), `./themes/${nowTheme}/${filename || "index"}.ejs`), 'utf-8');
 
-          const mockData = generateMockData(req);
+          const mockData = await generateMockData(req);
 
           const ejsData = {
             ...mockData,
