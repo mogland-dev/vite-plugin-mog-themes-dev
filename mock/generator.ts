@@ -104,12 +104,12 @@ function generatePageVariable<T extends RenderType>({
   }
 }
 
-export function generateMockData<T extends RenderType>(
+export async function generateMockData<T extends RenderType>(
   req: http.IncomingMessage & {
     query: Record<string, string>;
     params: string[];
   }
-): Render<T> {
+): Promise<Render<T>> {
   if (!req) {
     throw new Error("Why req is undefined?");
   }
