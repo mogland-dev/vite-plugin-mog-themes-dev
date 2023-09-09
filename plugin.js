@@ -208,7 +208,7 @@ function createMogThemeDevServerPlugin(config) {
         const pathSegments = req.url.split('/');
         const _filename = pathSegments[1] || "index";
         const nowTheme = config?.themeId || pathSegments[1];
-        const validFilenames = ["index", "category", "tag", "archive", "friends", "posts", "page"];
+        const validFilenames = ["index", "archive", "friends", "posts", "page"];
         const isCategoryOrTag = ["category", "tag"].includes(_filename);
         const hasParams = req.params?.length > 0;
 
